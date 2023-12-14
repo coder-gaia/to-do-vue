@@ -1,47 +1,101 @@
 <script setup>
-import HelloWorld from './components/HelloWorld.vue'
-import TheWelcome from './components/TheWelcome.vue'
+import { reactive } from 'vue';
+
+const state = reactive({
+    filter: 'all',
+    tempTask: '',
+    tasks:[
+        {
+            title: 'Study Grunt',
+            acomplished: false
+        },
+        {
+            title: 'Study LESS',
+            acomplished: false
+        },
+        {
+            title: 'Go to the gym',
+            acomplished: true
+        }
+    ]
+})
+
+const getPendingTasks = ()=>{
+    return state.tasks.filter( task => !task.acomplished)
+}
+const getAcomplishedTasks = ()=>{
+    return state.tasks.filter( task => task.acomplished)
+}
+const getFilteredTasks = ()=>{
+    const { filter } = state
+
+    switch(filter){
+        case 'pending':
+            return getPendingTasks();
+        case 'acomplished':
+            return getAcomplishedTasks();
+        default:
+            return state.tasks
+    }
+}
+    const registerTask = () =>{
+        const newTask = {
+            title: state.tempTask,
+            acomplished: false
+        }
+        state.tasks.push(newTask)
+        state.tempTask = ''
+    }
+
 </script>
 
 <template>
-  <header>
-    <img alt="Vue logo" class="logo" src="./assets/logo.svg" width="125" height="125" />
+    <div class="container">
 
-    <div class="wrapper">
-      <HelloWorld msg="You did it!" />
+        <header class="p-5 mb-4 mt-4 bg-light rounded-3">
+            <h1>My Tasks</h1>
+            <p>
+                You have {{  getPendingTasks().length }} pending tasks
+            </p>
+        </header>
+        <form @submit.prevent="registerTask">
+            <div class="row">
+
+                <div class="col">
+                    <input  :value="state.tempTask" @change="event => state.tempTask = event.target.value" required type="text" placeholder="Insert the task description" class="form-control">
+                </div>
+
+                <div class="col-md-2">
+                    <button class="btn btn-primary" type="submit">register</button>
+                </div>
+
+                <div class="col-md-2">
+                    <select @change="event => state.filter = event.target.value" class="form-control">
+                        <option value="all">All tasks</option>
+                        <option value="pending">Pending</option>
+                        <option value="acomplished">Acomplished</option>
+                    </select>
+                </div>
+
+            </div >
+        </form>
+        <ul class="list-group mt-4">
+
+            <li class="list-group-item" v-for="task in getFilteredTasks()">
+
+                <input @change="event => task.acomplished = event.target.checked" :checked="task.acomplished" :id="task.title" type="checkbox">
+
+                <label :class="{ done: task.acomplished}" class="ms-3" :for="task.title">
+                    {{  task.title }}
+                </label>
+            </li>
+
+        </ul>
     </div>
-  </header>
-
-  <main>
-    <TheWelcome />
-  </main>
 </template>
 
 <style scoped>
-header {
-  line-height: 1.5;
-}
-
-.logo {
-  display: block;
-  margin: 0 auto 2rem;
-}
-
-@media (min-width: 1024px) {
-  header {
-    display: flex;
-    place-items: center;
-    padding-right: calc(var(--section-gap) / 2);
-  }
-
-  .logo {
-    margin: 0 2rem 0 0;
-  }
-
-  header .wrapper {
-    display: flex;
-    place-items: flex-start;
-    flex-wrap: wrap;
-  }
+.done{
+    text-decoration: line-through;
 }
 </style>
